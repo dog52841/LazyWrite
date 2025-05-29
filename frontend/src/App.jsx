@@ -2,11 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpenIcon, ArrowDownTrayIcon, ChevronLeftIcon, ChevronRightIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import * as pdfjsLib from 'pdfjs-dist/build/pdf'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry'
 import './App.css'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 const SURPRISE_PROMPTS = [
   "A 50-page fantasy adventure with talking dragons and a lost city",
@@ -285,7 +284,7 @@ export default function App() {
               ) : (
                 <div className="text-green-400 font-bold text-lg animate-pulse mt-2">Ad complete! Unlocking your book...</div>
               )}
-      </div>
+            </div>
           </motion.div>
         </motion.div>
       )}
@@ -336,7 +335,7 @@ export default function App() {
                   onClick={removeUserKey}
                 >
                   Remove Key
-        </button>
+                </button>
               )}
             </div>
             <div className="text-xs text-purple-300 mt-4 text-center">Your API key is only stored in your browser and never sent to our server or anyone else.</div>
@@ -542,6 +541,6 @@ export default function App() {
       <footer className="z-10 w-full text-center text-purple-200 py-6 text-sm mt-auto">
         Made with 💜 for everyone. No paywalls. No tricks. Just books.
       </footer>
-      </div>
+    </div>
   )
 }

@@ -15,7 +15,14 @@ router.get('/', (req, res) => {
 async function callInternal(endpoint, data) {
   console.log(`Attempting to call ${endpoint} with data:`, JSON.stringify(data, null, 2));
   try {
-    const response = await axios.post(`http://localhost:5000${endpoint}`, data, { 
+    // Use environment variable with fallback
+    const baseUrl = process.env.SELF_URL || 
+                   (process.env.NODE_ENV === 'production' 
+                     ? 'https://lazywrite.onrender.com' 
+                     : 'http://localhost:5000');
+      
+    console.log(`Using base URL: ${baseUrl} for internal call`);
+    const response = await axios.post(`${baseUrl}${endpoint}`, data, { 
       timeout: 120000,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -33,6 +40,15 @@ async function callInternal(endpoint, data) {
         throw new Error('content_filter');
       }
       throw new Error(error.response.data.error || 'Service temporarily unavailable');
+    } else if (error.code === 'ECONNREFUSED') {
+      console.error('Connection refused error. Service might be down or not running.');
+      throw new Error('connection_refused');
+    } else if (error.code === 'ECONNABORTED') {
+      console.error('Connection timeout. Request took too long to complete.');
+      throw new Error('connection_timeout');
+    } else if (error.code === 'ENOTFOUND') {
+      console.error('Host not found. Check network connectivity or DNS.');
+      throw new Error('host_not_found');
     }
     console.error('Network or other error:', error.code || 'Unknown error code');
     throw new Error('Failed to generate content. Please try again.');
@@ -380,6 +396,14 @@ router.post('/', async (req, res) => {
       console.log('Content filter error detected, returning 400 to client');
       return res.status(400).json({
         error: "Please ensure your book topic is appropriate for children. Content filter triggered."
+      });
+    } else if (error.message === 'connection_refused' || 
+               error.message === 'connection_timeout' || 
+               error.message === 'host_not_found') {
+      console.log('Network error detected, returning 503 to client');
+      return res.status(503).json({
+        error: "We're experiencing connectivity issues with our AI providers. Please try again later.",
+        isNetworkError: true
       });
     }
     

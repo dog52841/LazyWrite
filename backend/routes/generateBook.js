@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 });
 
 // Helper to call internal endpoints with better error handling
-async function callInternal(endpoint, data) {
+async function callInternal(endpoint, data, retryCount = 0) {
   console.log(`Attempting to call ${endpoint} with data:`, JSON.stringify(data, null, 2));
   try {
     // Use environment variable with fallback
@@ -23,13 +23,28 @@ async function callInternal(endpoint, data) {
       
     console.log(`Using base URL: ${baseUrl} for internal call`);
     const response = await axios.post(`${baseUrl}${endpoint}`, data, { 
-      timeout: 120000,
+      timeout: 180000, // Increase timeout for larger models
       headers: { 'Content-Type': 'application/json' }
     });
     console.log(`Successfully called ${endpoint}, response status: ${response.status}`);
     return response;
   } catch (error) {
     console.error(`Error calling ${endpoint}:`, error.message);
+    
+    // Add retry logic for transient errors (3 max retries)
+    const maxRetries = 2;
+    if (retryCount < maxRetries && (
+        error.code === 'ECONNRESET' || 
+        error.code === 'ETIMEDOUT' ||
+        (error.response && error.response.status >= 500 && error.response.status < 600)
+    )) {
+      console.log(`Retrying ${endpoint} call (attempt ${retryCount + 1}/${maxRetries})...`);
+      // Exponential backoff
+      const delay = 2000 * Math.pow(2, retryCount);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return callInternal(endpoint, data, retryCount + 1);
+    }
+    
     if (error.response) {
       console.error(`Response error details:`, error.response.data);
       if (error.response.status === 429) {
@@ -94,17 +109,20 @@ router.post('/', async (req, res) => {
     // 1. Generate book structure with educational content
     console.log('Generating text content...');
     const textRes = await callInternal('/generate-text', { 
-      prompt: `Create an educational children's book about ${prompt} with:
-      - A clear table of contents
-      - 4-5 chapters with engaging titles
-      - Vocabulary words defined in margins (marked as "Word to Know:")
-      - "Let's Think!" discussion questions in colored boxes
-      - "Try This!" hands-on activities
-      - "Did You Know?" fun facts in the margins
-      - Beautiful scene descriptions for illustrations
-      - Child-friendly language (grades 4-6 level)
-      - Educational value and moral lessons
-      Write in a warm, encouraging tone like a favorite teacher.`
+      prompt: `Create a highly professional educational children's book about ${prompt} with:
+      - A beautiful title page with an engaging title and subtitle
+      - A well-structured table of contents with page numbers
+      - 4-5 chapters with compelling, engaging titles
+      - Important vocabulary words defined in margins (marked as "Word to Know:")
+      - "Let's Think!" discussion questions in colored boxes at strategic points
+      - "Try This!" hands-on activities that reinforce learning
+      - "Did You Know?" fun facts in the margins to add depth and interest
+      - Detailed scene descriptions for beautiful illustrations
+      - Child-friendly language (grades 4-6 level) that is clear but not condescending
+      - Rich educational content with deep subject matter expertise
+      - Thoughtful moral lessons woven naturally into the narrative
+      - A memorable conclusion that reinforces key learnings
+      Write in a warm, encouraging tone like a favorite teacher, with clean paragraph breaks and clear section formatting.`
     });
     console.log('Text generation completed, processing result...');
     
@@ -122,7 +140,7 @@ router.post('/', async (req, res) => {
     // 2. Generate professional illustrations
     const images = [];
     for (let i = 0; i < chapters.length; i++) {
-      const imgPrompt = `High-quality educational textbook illustration, traditional watercolor style, soft natural colors, detailed nature scene with educational elements, in the style of classic children's textbooks. Scene: ${chapters[i].slice(0, 100)}. Clean, professional, no text overlay.`;
+      const imgPrompt = `Award-winning educational textbook illustration, vibrant watercolor style with detailed linework, professional lighting, rich natural colors, child-friendly but sophisticated educational scene. Subject: ${chapters[i].slice(0, 150)}. Style similar to modern children's educational publishers like Scholastic, with clean composition, educational value, and emotional appeal.`;
       try {
         const imgRes = await callInternal('/generate-image', { prompt: imgPrompt });
         if (imgRes.data && (imgRes.data.imageUrl || imgRes.data.imageBase64)) {

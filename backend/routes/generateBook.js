@@ -13,22 +13,28 @@ router.get('/', (req, res) => {
 
 // Helper to call internal endpoints with better error handling
 async function callInternal(endpoint, data) {
+  console.log(`Attempting to call ${endpoint} with data:`, JSON.stringify(data, null, 2));
   try {
     const response = await axios.post(`http://localhost:5000${endpoint}`, data, { 
       timeout: 120000,
       headers: { 'Content-Type': 'application/json' }
     });
+    console.log(`Successfully called ${endpoint}, response status: ${response.status}`);
     return response;
   } catch (error) {
     console.error(`Error calling ${endpoint}:`, error.message);
     if (error.response) {
+      console.error(`Response error details:`, error.response.data);
       if (error.response.status === 429) {
+        console.log('Rate limit exceeded, key rotation should handle this.');
         throw new Error('rate_limit_exceeded');
       } else if (error.response.data?.error?.includes('content')) {
+        console.log('Content filter triggered.');
         throw new Error('content_filter');
       }
       throw new Error(error.response.data.error || 'Service temporarily unavailable');
     }
+    console.error('Network or other error:', error.code || 'Unknown error code');
     throw new Error('Failed to generate content. Please try again.');
   }
 }
@@ -68,7 +74,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    console.log('Starting book generation process for prompt:', prompt);
     // 1. Generate book structure with educational content
+    console.log('Generating text content...');
     const textRes = await callInternal('/generate-text', { 
       prompt: `Create an educational children's book about ${prompt} with:
       - A clear table of contents
@@ -82,6 +90,7 @@ router.post('/', async (req, res) => {
       - Educational value and moral lessons
       Write in a warm, encouraging tone like a favorite teacher.`
     });
+    console.log('Text generation completed, processing result...');
     
     if (!textRes.data || !textRes.data.text) {
       throw new Error('Failed to generate book content');

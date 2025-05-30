@@ -28,34 +28,30 @@ const AnimatedBackground = () => (
 // Feature card component with hover effects
 const FeatureCard = ({ icon: Icon, title, description }) => (
   <motion.div 
-    className="card p-6 text-center"
-    whileHover={{ y: -8, boxShadow: "0 20px 40px -12px rgba(0,0,0,0.1)" }}
+    className="card p-5 text-center"
+    whileHover={{ y: -4 }}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, type: "spring", stiffness: 150 }}
+    transition={{ duration: 0.2 }}
   >
-    <div className="bg-gradient-to-br from-indigo-500 to-violet-500 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg feature-icon">
-      <Icon className="w-6 h-6 text-white" />
+    <div className="bg-gradient-to-br from-indigo-500 to-violet-500 w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm feature-icon">
+      <Icon className="w-4 h-4 text-white" />
     </div>
-    <h3 className="font-bold text-lg mb-2 text-gray-800">{title}</h3>
-    <p className="text-sm text-gray-600">{description}</p>
+    <h3 className="font-semibold text-base mb-1 text-gray-800">{title}</h3>
+    <p className="text-xs text-gray-600">{description}</p>
   </motion.div>
 )
 
 // Ad component with hover effects
 const AdBanner = ({ className, size }) => (
-  <motion.div 
-    className={`ad-slot flex items-center justify-center text-gray-400 ${className}`}
-    whileHover={{ scale: 1.02 }}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.5 }}
+  <div 
+    className={`ad-slot flex items-center justify-center text-gray-400 text-xs ${className}`}
   >
     {size === 'horizontal' && '[Horizontal Banner Ad]'}
     {size === 'vertical' && '[Vertical Banner Ad]'}
     {size === 'square' && '[Square Ad]'}
     {size === 'interstitial' && '[Fullscreen Ad]'}
-  </motion.div>
+  </div>
 )
 
 export default function App() {
@@ -136,63 +132,63 @@ export default function App() {
       
       {/* Header with Top Banner Ad */}
       <header className="w-full bg-white/70 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto p-4">
-          <AdBanner className="h-16 w-full mx-auto" size="horizontal" />
+        <div className="max-w-5xl mx-auto p-3">
+          <AdBanner className="h-12 w-full mx-auto" size="horizontal" />
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row">
+      <main className="max-w-5xl mx-auto px-4 py-6 flex flex-col lg:flex-row">
         {/* Left Side Ad */}
-        <div className="hidden xl:block w-64 mr-8 flex-shrink-0">
-          <div className="sticky top-28">
-            <AdBanner className="h-[600px] w-full mb-6" size="vertical" />
-            <AdBanner className="h-64 w-full" size="square" />
+        <div className="hidden xl:block w-48 mr-6 flex-shrink-0">
+          <div className="sticky top-24">
+            <AdBanner className="h-[400px] w-full mb-4" size="vertical" />
+            <AdBanner className="h-48 w-full" size="square" />
           </div>
         </div>
 
         {/* Center Content */}
-        <div className="flex-1 max-w-4xl mx-auto">
+        <div className="flex-1 max-w-3xl mx-auto">
           {/* Logo and Title */}
           <motion.div 
-            className="text-center mb-12"
+            className="text-center mb-8"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.5 }}
           >
             <motion.div 
-              className="w-24 h-24 mx-auto mb-6 flex items-center justify-center"
+              className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <div className="w-full h-full bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center p-1">
+              <div className="w-full h-full bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center p-0.5">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                  <BookOpenIcon className="w-12 h-12 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-purple-500 to-blue-500" />
+                  <BookOpenIcon className="w-8 h-8 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-purple-500 to-blue-500" />
                 </div>
               </div>
             </motion.div>
             
-            <h1 className="text-6xl font-extrabold mb-6 tracking-tight">
+            <h1 className="text-4xl font-extrabold mb-3 tracking-tight">
               <span className="gradient-text">LazyWrite</span>
             </h1>
             
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
               Create Professional Books with AI
             </h2>
             
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm text-gray-600 max-w-xl mx-auto">
               Transform your ideas into beautifully designed educational books in seconds—free, instant, and no sign-up required.
             </p>
           </motion.div>
 
           {/* Main Input Card */}
           <motion.div 
-            className="card p-8 mb-12"
+            className="card p-6 mb-8"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.4 }}
           >
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   What would you like your book to be about?
@@ -200,7 +196,7 @@ export default function App() {
                 <div className="relative">
                   <input
                     type="text"
-                    className="w-full px-4 py-4 rounded-xl text-gray-800 placeholder-gray-400"
+                    className="w-full px-4 py-3 rounded-lg text-gray-800 placeholder-gray-400 text-sm"
                     placeholder="A magical storybook about..."
                     value={prompt}
                     onChange={e => setPrompt(e.target.value)}
@@ -209,11 +205,11 @@ export default function App() {
                   <motion.button
                     type="button"
                     onClick={handleSurprise}
-                    whileHover={{ scale: 1.1, rotate: 10 }}
+                    whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors"
                   >
-                    <SparklesIcon className="w-5 h-5" />
+                    <SparklesIcon className="w-4 h-4" />
                   </motion.button>
                 </div>
               </div>
@@ -221,15 +217,15 @@ export default function App() {
               <motion.button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-4"
-                whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
-                whileTap={{ scale: 0.98 }}
+                className="w-full flex items-center justify-center gap-1.5 py-3 text-sm"
+                whileHover={{ scale: 1.01, boxShadow: "0 8px 16px -4px rgba(79, 70, 229, 0.3)" }}
+                whileTap={{ scale: 0.99 }}
               >
                 {loading ? (
-                  <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <BookOpenIcon className="w-5 h-5" />
+                    <BookOpenIcon className="w-4 h-4" />
                     Generate My Book
                   </>
                 )}
@@ -239,7 +235,7 @@ export default function App() {
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-red-500 text-sm font-medium p-3 bg-red-50 rounded-lg"
+                  className="text-red-500 text-xs font-medium p-2 bg-red-50 rounded-lg"
                 >
                   {error}
                 </motion.div>
@@ -248,117 +244,116 @@ export default function App() {
           </motion.div>
 
           {/* Mid-page Ad */}
-          <div className="mb-12">
-            <AdBanner className="h-24 w-full" size="horizontal" />
+          <div className="mb-8">
+            <AdBanner className="h-16 w-full" size="horizontal" />
           </div>
 
           {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-4 mb-8">
             <FeatureCard 
               icon={StarIcon}
               title="Professional Design"
-              description="Beautiful layouts and professional illustrations in every book"
+              description="Beautiful layouts and illustrations"
             />
             <FeatureCard 
               icon={LightBulbIcon}
               title="Educational Content"
-              description="Rich learning material with activities and vocabulary"
+              description="Rich learning material and activities"
             />
             <FeatureCard 
               icon={HeartIcon}
               title="100% Free"
-              description="No hidden costs, subscriptions, or sign-ups required"
+              description="No hidden costs or sign-ups"
             />
           </div>
 
+          {/* How It Works Section */}
+          <motion.div 
+            className="card p-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <h3 className="text-lg font-bold text-center mb-4 text-gray-800">How It Works</h3>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-2">1</div>
+                <h4 className="font-semibold text-sm text-gray-800 mb-1">Enter Your Topic</h4>
+                <p className="text-xs text-gray-600">Any subject for your educational book</p>
+              </div>
+              <div className="text-center">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-2">2</div>
+                <h4 className="font-semibold text-sm text-gray-800 mb-1">AI Creates Your Book</h4>
+                <p className="text-xs text-gray-600">Text, illustrations, and educational elements</p>
+              </div>
+              <div className="text-center">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-2">3</div>
+                <h4 className="font-semibold text-sm text-gray-800 mb-1">Download & Enjoy</h4>
+                <p className="text-xs text-gray-600">Professional PDF ready to use</p>
+              </div>
+            </div>
+          </motion.div>
+          
           {/* Testimonials Section */}
           <motion.div 
-            className="card p-8 mb-12"
+            className="card p-6 mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">What Educators Are Saying</h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <p className="text-gray-600 italic">"LazyWrite has transformed how I create materials for my classroom. The quality is impressive!"</p>
-                <p className="text-gray-800 font-medium mt-2">- Sarah T., 3rd Grade Teacher</p>
+            <h3 className="text-lg font-bold text-center mb-4 text-gray-800">Educators Love LazyWrite</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="text-gray-600 italic text-xs">"LazyWrite has transformed how I create materials for my classroom!"</p>
+                <p className="text-gray-800 font-medium text-xs mt-2">- Sarah T., Teacher</p>
               </div>
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <p className="text-gray-600 italic">"My students love the books we generate together. It's made learning so much more engaging."</p>
-                <p className="text-gray-800 font-medium mt-2">- Michael K., Elementary Librarian</p>
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="text-gray-600 italic text-xs">"My students love the books we generate together."</p>
+                <p className="text-gray-800 font-medium text-xs mt-2">- Michael K., Librarian</p>
               </div>
             </div>
           </motion.div>
 
           {/* Bottom Ad */}
-          <div className="mb-12">
-            <AdBanner className="h-24 w-full" size="horizontal" />
+          <div className="mb-8">
+            <AdBanner className="h-16 w-full" size="horizontal" />
           </div>
-
-          {/* How It Works Section */}
-          <motion.div 
-            className="card p-8 mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">How It Works</h3>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg mx-auto mb-3">1</div>
-                <h4 className="font-semibold text-gray-800 mb-2">Enter Your Topic</h4>
-                <p className="text-sm text-gray-600">Type any subject or theme for your educational book</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg mx-auto mb-3">2</div>
-                <h4 className="font-semibold text-gray-800 mb-2">AI Creates Your Book</h4>
-                <p className="text-sm text-gray-600">Our AI generates text, illustrations, and educational elements</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg mx-auto mb-3">3</div>
-                <h4 className="font-semibold text-gray-800 mb-2">Download & Enjoy</h4>
-                <p className="text-sm text-gray-600">Get your professional PDF instantly, ready to print or share</p>
-              </div>
-            </div>
-          </motion.div>
         </div>
 
         {/* Right Side Ad */}
-        <div className="hidden xl:block w-64 ml-8 flex-shrink-0">
-          <div className="sticky top-28">
-            <AdBanner className="h-[600px] w-full mb-6" size="vertical" />
-            <AdBanner className="h-64 w-full" size="square" />
+        <div className="hidden xl:block w-48 ml-6 flex-shrink-0">
+          <div className="sticky top-24">
+            <AdBanner className="h-[400px] w-full mb-4" size="vertical" />
+            <AdBanner className="h-48 w-full" size="square" />
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white/70 backdrop-blur-md border-t border-gray-100 py-8 text-center">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
+      <footer className="bg-white/70 backdrop-blur-md border-t border-gray-100 py-6 text-center">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
             <div>
-              <h4 className="font-bold text-gray-800 mb-4">LazyWrite</h4>
-              <p className="text-sm text-gray-600">Creating educational books with AI, making learning accessible to everyone.</p>
+              <h4 className="font-bold text-sm text-gray-800 mb-2">LazyWrite</h4>
+              <p className="text-xs text-gray-600">Creating educational books with AI.</p>
             </div>
             <div>
-              <h4 className="font-bold text-gray-800 mb-4">Quick Links</h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li><a href="#" className="hover:text-indigo-500 transition-colors">About Us</a></li>
+              <h4 className="font-bold text-sm text-gray-800 mb-2">Quick Links</h4>
+              <ul className="text-xs text-gray-600 space-y-1">
                 <li><a href="#" className="hover:text-indigo-500 transition-colors">Privacy Policy</a></li>
                 <li><a href="#" className="hover:text-indigo-500 transition-colors">Terms of Service</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-gray-800 mb-4">Contact</h4>
-              <p className="text-sm text-gray-600">Have questions or feedback? <a href="#" className="text-indigo-500 hover:underline">Contact us</a>.</p>
+              <h4 className="font-bold text-sm text-gray-800 mb-2">Contact</h4>
+              <p className="text-xs text-gray-600"><a href="#" className="text-indigo-500 hover:underline">Contact us</a></p>
             </div>
           </div>
-          <div className="pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600">© 2023 LazyWrite — Free, instant book creation powered by AI</p>
+          <div className="pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-600">© 2023 LazyWrite — Free, instant book creation powered by AI</p>
           </div>
-          <div className="mt-6">
-            <AdBanner className="h-24 w-full" size="horizontal" />
+          <div className="mt-4">
+            <AdBanner className="h-16 w-full" size="horizontal" />
           </div>
         </div>
       </footer>
@@ -376,11 +371,11 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="card p-8 max-w-md w-full mx-4 text-center"
+              className="card p-6 max-w-sm w-full mx-4 text-center"
             >
-              <h2 className="text-xl font-bold mb-4 gradient-text">Creating Your Book...</h2>
-              <AdBanner className="h-48 w-full mb-4" size="interstitial" />
-              <p className="text-sm text-gray-600">Your support helps keep LazyWrite free for everyone!</p>
+              <h2 className="text-lg font-bold mb-3 gradient-text">Creating Your Book...</h2>
+              <AdBanner className="h-36 w-full mb-3" size="interstitial" />
+              <p className="text-xs text-gray-600">Your support helps keep LazyWrite free for everyone!</p>
             </motion.div>
           </motion.div>
         )}
@@ -399,15 +394,15 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="card p-8 max-w-md w-full mx-4 text-center"
+              className="card p-6 max-w-sm w-full mx-4 text-center"
             >
-              <div className="mb-4 text-green-500">
-                <AcademicCapIcon className="w-16 h-16 mx-auto" />
+              <div className="mb-3 text-green-500">
+                <AcademicCapIcon className="w-10 h-10 mx-auto" />
               </div>
-              <h2 className="text-xl font-bold mb-4 text-gray-800">Your Book Is Ready!</h2>
-              <p className="mb-4 text-gray-600">Download will start automatically in a moment...</p>
-              <AdBanner className="h-48 w-full mb-4" size="interstitial" />
-              <p className="text-sm text-gray-600">Like LazyWrite? Create another book!</p>
+              <h2 className="text-lg font-bold mb-2 text-gray-800">Your Book Is Ready!</h2>
+              <p className="mb-3 text-xs text-gray-600">Download will start automatically...</p>
+              <AdBanner className="h-36 w-full mb-3" size="interstitial" />
+              <p className="text-xs text-gray-600">Like LazyWrite? Create another book!</p>
             </motion.div>
           </motion.div>
         )}

@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
+    "autoprefixer": "^10.4.21",
     "framer-motion": "^12.15.0",
     "pdfjs-dist": "^5.2.133",
     "react": "^19.1.0",

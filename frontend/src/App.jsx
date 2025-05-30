@@ -3,26 +3,104 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { SparklesIcon, BookOpenIcon, ArrowPathIcon, StarIcon, LightBulbIcon, HeartIcon, AcademicCapIcon, CheckCircleIcon, PaperClipIcon } from '@heroicons/react/24/solid'
 import * as pdfjsLib from 'pdfjs-dist/build/pdf'
 import './App.css'
+import axios from 'axios'
+import { Transition } from '@headlessui/react'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
 const SURPRISE_PROMPTS = [
-  "A magical journey through the wonders of science",
-  "An adventurous tale about protecting our oceans",
-  "A friendly dragon teaching about emotions",
-  "A time-traveling story about historical heroes",
-  "A space exploration guide for young astronauts"
+  "Write a children's book about a shy turtle who discovers the power of friendship",
+  "Create an educational story about space exploration for elementary students",
+  "Write a bedtime story about magical dreams and adventure",
+  "Create a picture book about the water cycle with fun characters",
+  "Write an educational story about a journey through the human body"
 ]
 
-// Animated gradient background component
-const AnimatedBackground = () => (
-  <div className="fixed inset-0 -z-10">
-    <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-blue-50 to-indigo-50" />
-    <div className="absolute top-0 left-0 w-1/3 h-1/3 opacity-60 bg-gradient-to-br from-pink-200/20 via-purple-200/20 to-transparent rounded-full blur-3xl" />
-    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 opacity-60 bg-gradient-to-br from-blue-200/20 via-indigo-200/20 to-transparent rounded-full blur-3xl" />
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2/3 h-2/3 opacity-30 bg-gradient-to-br from-indigo-200/10 via-purple-200/10 to-pink-200/10 rounded-full blur-3xl" />
-  </div>
+// Animated particles background
+const ParticlesBackground = () => {
+  const particlesRef = useRef([]);
+  const containerRef = useRef(null);
+  
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const createParticles = () => {
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const particleCount = Math.floor(window.innerWidth / 30); // Responsive particle count
+      
+      particlesRef.current = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Random position, size and opacity
+        const size = Math.random() * 6 + 2;
+        const opacity = Math.random() * 0.5 + 0.1;
+        const left = Math.random() * containerRect.width;
+        const top = Math.random() * containerRect.height;
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.opacity = opacity;
+        particle.style.left = `${left}px`;
+        particle.style.top = `${top}px`;
+        
+        // Animation properties
+        const duration = Math.random() * 30 + 20;
+        const delay = Math.random() * 10;
+        
+        particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+        
+        container.appendChild(particle);
+        particlesRef.current.push(particle);
+      }
+    };
+    
+    createParticles();
+    
+    // Recreate particles on window resize
+    const handleResize = () => {
+      particlesRef.current.forEach(particle => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      });
+      createParticles();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      particlesRef.current.forEach(particle => {
+        if (particle && particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      });
+    };
+  }, []);
+  
+  return (
+    <div 
+      ref={containerRef} 
+      className="fixed inset-0 pointer-events-none overflow-hidden z-0"
+      aria-hidden="true"
+    />
+  );
+}
+
+// Main sparkle icon
+const SparkleIcon = ({ className }) => (
+  <motion.div 
+    animate={{ rotate: 360 }}
+    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+    className={className}
+  >
+    <SparklesIcon className="w-6 h-6" />
+  </motion.div>
 )
 
 // Feature card component with hover effects and staggered animations
@@ -77,7 +155,7 @@ export default function App() {
   const [showInterstitial, setShowInterstitial] = useState(false)
   const [showSuccessAd, setShowSuccessAd] = useState(false)
   const [generationStep, setGenerationStep] = useState(0)
-  const [loadingText, setLoadingText] = useState('Starting book generation...')
+  const [loadingText, setLoadingText] = useState('Creating your masterpiece...')
   const textareaRef = useRef(null)
 
   useEffect(() => {
@@ -95,11 +173,11 @@ export default function App() {
   useEffect(() => {
     if (loading) {
       const messages = [
-        'Creating your story...',
-        'Designing beautiful illustrations...',
-        'Adding educational content...',
-        'Formatting pages...',
-        'Almost there...'
+        'Crafting your narrative...',
+        'Designing magical illustrations...',
+        'Weaving in captivating details...',
+        'Perfecting the final touches...',
+        'Almost ready to unveil...'
       ];
       
       const interval = setInterval(() => {
@@ -118,7 +196,7 @@ export default function App() {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = `${Math.max(80, textareaRef.current.scrollHeight)}px`;
     }
   }, [prompt]);
 
@@ -131,35 +209,25 @@ export default function App() {
     e.preventDefault()
     setError('')
     if (!prompt.trim()) {
-      setError('Please describe the book you want to create!')
+      setError('Please share your story idea first!')
       return
     }
-    setShowInterstitial(true)
-    setTimeout(() => {
-      setShowInterstitial(false)
-      startBookGeneration()
-    }, 3000)
+    
+    startBookGeneration()
   }
 
   const startBookGeneration = async () => {
     setLoading(true)
     setGenerationStep(0)
-    setLoadingText('Starting book generation...')
+    setLoadingText('Creating your masterpiece...')
     
     try {
-      const response = await fetch(`${BACKEND_URL}/generate-book`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
-      })
+      const response = await axios.post(`${BACKEND_URL}/generate-book`, { prompt }, {
+        responseType: 'blob'
+      });
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to generate book: ${response.status} ${response.statusText}`)
-      }
-      
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      const blob = await response.data;
+      const url = window.URL.createObjectURL(blob);
       
       // Show success ad before download
       setShowSuccessAd(true)
@@ -182,258 +250,143 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen overflow-hidden">
-      <AnimatedBackground />
+    <div className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center py-8 px-4">
+      {/* Animated Background */}
+      <ParticlesBackground />
       
-      {/* Header with Top Banner Ad */}
-      <header className="w-full bg-white/70 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-4xl mx-auto p-2">
-          <AdBanner className="h-10 w-full mx-auto" size="horizontal" />
+      {/* Header */}
+      <header className="pt-4 px-6 relative z-10">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <BookOpenIcon className="w-8 h-8 text-purple-400 mr-2" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              LazyWrite
+            </h1>
+          </div>
+          <div className="text-gray-400 text-sm flex items-center">
+            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 10V3L4 14H11V21L20 10H13Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Powered by Hostinger
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-3 py-4 flex flex-col lg:flex-row">
-        {/* Left Side Ad */}
-        <div className="hidden xl:block w-36 mr-4 flex-shrink-0">
-          <div className="sticky top-20">
-            <AdBanner className="h-[300px] w-full mb-3" size="vertical" />
-            <AdBanner className="h-36 w-full" size="square" />
-          </div>
-        </div>
-
-        {/* Center Content */}
-        <div className="flex-1 max-w-2xl mx-auto">
-          {/* Logo and Title */}
-          <motion.div 
-            className="text-center mb-8"
-            initial={{ y: 15, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            <motion.div 
-              className="w-12 h-12 mx-auto mb-3 flex items-center justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <div className="w-full h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center p-0.5">
-                <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                  <BookOpenIcon className="w-6 h-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
-                </div>
-              </div>
-            </motion.div>
-            
-            <h1 className="text-3xl font-extrabold mb-2 tracking-tight">
-              <span className="gradient-text">LazyWrite</span>
-            </h1>
-            
-            <h2 className="text-lg font-bold text-gray-800 mb-3">
-              Create Professional Books with AI
-            </h2>
-            
-            <p className="text-sm text-gray-600 max-w-md mx-auto mb-8">
-              Transform your ideas into beautifully designed educational books in seconds—free, instant, and no sign-up required.
-            </p>
-
-            {/* New Lovable-style Prompt Area */}
-            <motion.div 
-              className="relative max-w-2xl mx-auto mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-5 border border-gray-100">
-                  <textarea
-                    ref={textareaRef}
-                    className="w-full bg-transparent text-gray-800 placeholder-gray-400 text-lg resize-none overflow-hidden focus:outline-none min-h-[50px] mb-4"
-                    placeholder="Ask LazyWrite to create a book about..."
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    disabled={loading}
-                    rows={1}
-                  />
-                  
-                  <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        className="text-gray-400 hover:text-indigo-500 transition-colors"
-                        onClick={handleSurprise}
-                        disabled={loading}
-                      >
-                        <SparklesIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        type="button"
-                        className="text-gray-400 hover:text-indigo-500 transition-colors"
-                        disabled={loading}
-                      >
-                        <PaperClipIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                    
-                    <motion.button
-                      type="submit"
-                      disabled={loading}
-                      className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-full text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-all"
-                      whileHover={{ scale: 1.02, boxShadow: "0 6px 12px -4px rgba(79, 70, 229, 0.3)" }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {loading ? (
-                        <>
-                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                          <span>{loadingText}</span>
-                        </>
-                      ) : (
-                        <>
-                          <BookOpenIcon className="w-4 h-4" />
-                          Generate Book
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
-                </div>
-                
-                {error && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-red-500 text-xs font-medium p-3 bg-red-50 rounded-lg"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-
-                {/* Prompt Option Buttons */}
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <PromptOptionButton icon={BookOpenIcon} label="Children's Book" />
-                  <PromptOptionButton icon={AcademicCapIcon} label="Educational" />
-                  <PromptOptionButton icon={LightBulbIcon} label="Science" />
-                  <PromptOptionButton icon={HeartIcon} label="Fantasy" />
-                </div>
-              </form>
-            </motion.div>
-
-          </motion.div>
-
-          {/* Mid-page Ad */}
-          <div className="mb-6">
-            <AdBanner className="h-12 w-full" size="horizontal" />
-          </div>
-
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-3 mb-6">
-            <FeatureCard 
-              icon={StarIcon}
-              title="Professional Design"
-              description="Beautiful layouts and illustrations"
-              index={0}
-            />
-            <FeatureCard 
-              icon={LightBulbIcon}
-              title="Educational Content"
-              description="Rich learning material and activities"
-              index={1}
-            />
-            <FeatureCard 
-              icon={HeartIcon}
-              title="100% Free"
-              description="No hidden costs or sign-ups"
-              index={2}
-            />
-          </div>
-
-          {/* How It Works Section */}
-          <motion.div 
-            className="card p-4 mb-6"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className="text-base font-bold text-center mb-3 text-gray-800">How It Works</h3>
-            <div className="grid md:grid-cols-3 gap-3">
-              <div className="text-center">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-1.5">1</div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-0.5">Enter Your Topic</h4>
-                <p className="text-xs text-gray-600">Any subject for your book</p>
-              </div>
-              <div className="text-center">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-1.5">2</div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-0.5">AI Creates Your Book</h4>
-                <p className="text-xs text-gray-600">Text, illustrations, and more</p>
-              </div>
-              <div className="text-center">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs mx-auto mb-1.5">3</div>
-                <h4 className="font-semibold text-xs text-gray-800 mb-0.5">Download & Enjoy</h4>
-                <p className="text-xs text-gray-600">Professional PDF ready to use</p>
-              </div>
-            </div>
-          </motion.div>
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-10 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-4xl mx-auto text-center"
+        >
+          <SparkleIcon className="mr-2 text-purple-400" />
           
-          {/* Testimonials Section */}
-          <motion.div 
-            className="card p-4 mb-6"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className="text-base font-bold text-center mb-3 text-gray-800">Educators Love LazyWrite</h3>
-            <div className="grid md:grid-cols-2 gap-3">
-              <div className="bg-white p-2.5 rounded-lg shadow-sm">
-                <p className="text-gray-600 italic text-xs">"LazyWrite has transformed how I create materials for my classroom!"</p>
-                <p className="text-gray-800 font-medium text-xs mt-1.5">- Sarah T., Teacher</p>
-              </div>
-              <div className="bg-white p-2.5 rounded-lg shadow-sm">
-                <p className="text-gray-600 italic text-xs">"My students love the books we generate together."</p>
-                <p className="text-gray-800 font-medium text-xs mt-1.5">- Michael K., Librarian</p>
-              </div>
-            </div>
-          </motion.div>
+          <h1 className="text-5xl font-bold mb-2 text-white">
+            Unleash Your Story with{" "}
+            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-orange-400 bg-clip-text text-transparent">
+              LazyWrite AI
+            </span>
+          </h1>
+          
+          <p className="text-lg text-purple-100/80 max-w-3xl mx-auto mb-12">
+            Simply type your book idea, and our AI will craft a unique, beautifully designed 
+            book for you in moments – completely free!
+          </p>
 
-          {/* Bottom Ad */}
-          <div className="mb-6">
-            <AdBanner className="h-12 w-full" size="horizontal" />
+          <div className="max-w-2xl mx-auto">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="bg-[#13111d]/80 backdrop-blur-md rounded-xl p-6 border border-purple-900/50 shadow-[0_0_25px_rgba(139,92,246,0.15)]">
+                <h2 className="text-purple-300 font-medium mb-4 text-lg">
+                  What story shall we write today?
+                </h2>
+                
+                <textarea
+                  ref={textareaRef}
+                  className="w-full bg-[#0c0a14] text-gray-100 placeholder-gray-500 text-lg rounded-lg p-4 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all min-h-[80px] border border-purple-900/40"
+                  placeholder="e.g., A thrilling mystery in a futuristic city with flying cars and sentient AI detectives..."
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  disabled={loading}
+                  rows={3}
+                />
+                
+                <div className="mt-4 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={handleSurprise}
+                    disabled={loading}
+                    className="text-purple-400 hover:text-purple-300 transition-colors flex items-center text-sm"
+                  >
+                    <SparklesIcon className="w-4 h-4 mr-1" />
+                    <span>Surprise me</span>
+                  </button>
+                  
+                  <motion.button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 py-3 px-6 rounded-full text-white font-medium bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-900/30 min-w-[200px]"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {loading ? (
+                      <>
+                        <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                        <span>{loadingText}</span>
+                      </>
+                    ) : (
+                      <>
+                        <BookOpenIcon className="w-5 h-5" />
+                        Generate My Book!
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+              
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-red-300 text-sm font-medium p-3 bg-red-900/20 rounded-lg border border-red-900/50"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </form>
           </div>
-        </div>
-
-        {/* Right Side Ad */}
-        <div className="hidden xl:block w-36 ml-4 flex-shrink-0">
-          <div className="sticky top-20">
-            <AdBanner className="h-[300px] w-full mb-3" size="vertical" />
-            <AdBanner className="h-36 w-full" size="square" />
-          </div>
-        </div>
+        </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white/70 backdrop-blur-md border-t border-gray-100 py-4 text-center">
-        <div className="max-w-4xl mx-auto px-3">
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
-            <div>
-              <h4 className="font-bold text-xs text-gray-800 mb-1.5">LazyWrite</h4>
-              <p className="text-xs text-gray-600">Creating educational books with AI.</p>
-            </div>
-            <div>
-              <h4 className="font-bold text-xs text-gray-800 mb-1.5">Quick Links</h4>
-              <ul className="text-xs text-gray-600 space-y-0.5">
-                <li><a href="#" className="hover:text-indigo-500 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-indigo-500 transition-colors">Terms of Service</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-xs text-gray-800 mb-1.5">Contact</h4>
-              <p className="text-xs text-gray-600"><a href="#" className="text-indigo-500 hover:underline">Contact us</a></p>
-            </div>
-          </div>
-          <div className="pt-3 border-t border-gray-200">
-            <p className="text-xs text-gray-600">© 2023 LazyWrite — Free, instant book creation powered by AI</p>
-          </div>
-          <div className="mt-3">
-            <AdBanner className="h-12 w-full" size="horizontal" />
-          </div>
-        </div>
-      </footer>
+      {/* Progress Indicators - Shown during loading */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+          >
+            <motion.div 
+              className="bg-[#13111d]/90 backdrop-blur-md px-5 py-3 rounded-full border border-purple-900/50 shadow-lg flex items-center gap-3"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="flex space-x-1.5">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <motion.div 
+                    key={i}
+                    className={`w-2 h-2 rounded-full ${i <= generationStep ? 'bg-purple-500' : 'bg-gray-700'}`}
+                    animate={i === generationStep ? { scale: [1, 1.5, 1] } : {}}
+                    transition={{ duration: 0.6, repeat: i === generationStep ? Infinity : 0 }}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium text-purple-200">{loadingText}</span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Interstitial Ad Modal */}
       <AnimatePresence>
@@ -485,36 +438,6 @@ export default function App() {
               <p className="mb-2 text-xs text-gray-600">Download will start automatically...</p>
               <AdBanner className="h-32 w-full mb-2" size="interstitial" />
               <p className="text-xs text-gray-600">Like LazyWrite? Create another book!</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Progress Indicators - Shown during loading */}
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
-          >
-            <motion.div 
-              className="bg-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <div className="flex space-x-1">
-                {[0, 1, 2, 3, 4].map(i => (
-                  <motion.div 
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full ${i <= generationStep ? 'bg-indigo-500' : 'bg-gray-200'}`}
-                    animate={i === generationStep ? { scale: [1, 1.3, 1] } : {}}
-                    transition={{ duration: 0.6, repeat: i === generationStep ? Infinity : 0 }}
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-medium text-gray-700">{loadingText}</span>
             </motion.div>
           </motion.div>
         )}

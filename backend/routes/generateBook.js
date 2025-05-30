@@ -93,7 +93,7 @@ router.post('/', async (req, res) => {
     console.log('Text generation completed, processing result...');
     
     if (!textRes.data || !textRes.data.text) {
-      throw new Error('Failed to generate book content');
+      throw new Error('Failed to generate book content: No text data returned from API');
     }
 
     const bookText = textRes.data.text;
@@ -371,18 +371,22 @@ router.post('/', async (req, res) => {
     
     // Enhanced error handling
     if (error.message === 'rate_limit_exceeded') {
+      console.log('Rate limit error detected, returning 429 to client');
       return res.status(429).json({
-        error: "We're experiencing high demand. Please try again in a few minutes.",
+        error: "We're experiencing high demand. All API keys are currently rate-limited. Please try again in a few minutes.",
         retryAfter: 60
       });
     } else if (error.message === 'content_filter') {
+      console.log('Content filter error detected, returning 400 to client');
       return res.status(400).json({
-        error: "Please ensure your book topic is appropriate for children."
+        error: "Please ensure your book topic is appropriate for children. Content filter triggered."
       });
     }
     
+    console.log('Returning generic 500 error to client');
     return res.status(500).json({ 
-      error: error.message || 'Failed to generate book. Please try again.' 
+      error: error.message || 'Failed to generate book. Please try again.',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });

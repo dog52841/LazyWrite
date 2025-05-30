@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SparklesIcon, BookOpenIcon, ArrowPathIcon, StarIcon, LightBulbIcon, HeartIcon, AcademicCapIcon } from '@heroicons/react/24/solid'
+import { SparklesIcon, BookOpenIcon, ArrowPathIcon, StarIcon, LightBulbIcon, HeartIcon, AcademicCapIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
 import * as pdfjsLib from 'pdfjs-dist/build/pdf'
 import './App.css'
 
@@ -25,16 +25,19 @@ const AnimatedBackground = () => (
   </div>
 )
 
-// Feature card component with hover effects
-const FeatureCard = ({ icon: Icon, title, description }) => (
+// Feature card component with hover effects and staggered animations
+const FeatureCard = ({ icon: Icon, title, description, index }) => (
   <motion.div 
     className="card p-4 text-center"
     whileHover={{ y: -3 }}
     initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.2 }}
+    transition={{ duration: 0.2, delay: index * 0.1 }}
   >
-    <div className="bg-gradient-to-br from-indigo-500 to-violet-500 w-6 h-6 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm feature-icon">
+    <div 
+      className="bg-gradient-to-br from-indigo-500 to-violet-500 w-6 h-6 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm feature-icon"
+      style={{ '--delay': index }}
+    >
       <Icon className="w-3 h-3 text-white" />
     </div>
     <h3 className="font-semibold text-sm mb-1 text-gray-800">{title}</h3>
@@ -42,7 +45,7 @@ const FeatureCard = ({ icon: Icon, title, description }) => (
   </motion.div>
 )
 
-// Ad component with hover effects
+// Ad component with hover effects and loading animation
 const AdBanner = ({ className, size }) => (
   <div 
     className={`ad-slot flex items-center justify-center text-gray-400 text-xs ${className}`}
@@ -60,6 +63,8 @@ export default function App() {
   const [error, setError] = useState('')
   const [showInterstitial, setShowInterstitial] = useState(false)
   const [showSuccessAd, setShowSuccessAd] = useState(false)
+  const [generationStep, setGenerationStep] = useState(0)
+  const [loadingText, setLoadingText] = useState('Starting book generation...')
 
   useEffect(() => {
     // Show entry ad after 3 seconds (for user engagement)
@@ -71,6 +76,29 @@ export default function App() {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // Loading text rotation
+  useEffect(() => {
+    if (loading) {
+      const messages = [
+        'Creating your story...',
+        'Designing beautiful illustrations...',
+        'Adding educational content...',
+        'Formatting pages...',
+        'Almost there...'
+      ];
+      
+      const interval = setInterval(() => {
+        setGenerationStep(prev => {
+          const next = (prev + 1) % messages.length;
+          setLoadingText(messages[next]);
+          return next;
+        });
+      }, 3000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   const handleSurprise = () => {
     const idx = Math.floor(Math.random() * SURPRISE_PROMPTS.length)
@@ -93,16 +121,21 @@ export default function App() {
 
   const startBookGeneration = async () => {
     setLoading(true)
+    setGenerationStep(0)
+    setLoadingText('Starting book generation...')
+    
     try {
       const response = await fetch(`${BACKEND_URL}/generate-book`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt })
       })
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `Failed to generate book: ${response.status} ${response.statusText}`)
       }
+      
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       
@@ -161,9 +194,9 @@ export default function App() {
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <div className="w-full h-full bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 rounded-full flex items-center justify-center p-0.5">
+              <div className="w-full h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center p-0.5">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                  <BookOpenIcon className="w-6 h-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-purple-500 to-blue-500" />
+                  <BookOpenIcon className="w-6 h-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
                 </div>
               </div>
             </motion.div>
@@ -208,6 +241,7 @@ export default function App() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors"
+                    disabled={loading}
                   >
                     <SparklesIcon className="w-3.5 h-3.5" />
                   </motion.button>
@@ -222,7 +256,10 @@ export default function App() {
                 whileTap={{ scale: 0.99 }}
               >
                 {loading ? (
-                  <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                  <>
+                    <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
+                    <span className="ml-1.5 text-xs">{loadingText}</span>
+                  </>
                 ) : (
                   <>
                     <BookOpenIcon className="w-3.5 h-3.5" />
@@ -233,8 +270,8 @@ export default function App() {
 
               {error && (
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="text-red-500 text-xs font-medium p-2 bg-red-50 rounded-lg"
                 >
                   {error}
@@ -254,16 +291,19 @@ export default function App() {
               icon={StarIcon}
               title="Professional Design"
               description="Beautiful layouts and illustrations"
+              index={0}
             />
             <FeatureCard 
               icon={LightBulbIcon}
               title="Educational Content"
               description="Rich learning material and activities"
+              index={1}
             />
             <FeatureCard 
               icon={HeartIcon}
               title="100% Free"
               description="No hidden costs or sign-ups"
+              index={2}
             />
           </div>
 
@@ -396,13 +436,48 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="card p-5 max-w-xs w-full mx-3 text-center"
             >
-              <div className="mb-2 text-green-500">
-                <AcademicCapIcon className="w-8 h-8 mx-auto" />
-              </div>
+              <motion.div 
+                className="mb-2 text-green-500"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+              >
+                <CheckCircleIcon className="w-8 h-8 mx-auto" />
+              </motion.div>
               <h2 className="text-base font-bold mb-1.5 text-gray-800">Your Book Is Ready!</h2>
               <p className="mb-2 text-xs text-gray-600">Download will start automatically...</p>
               <AdBanner className="h-32 w-full mb-2" size="interstitial" />
               <p className="text-xs text-gray-600">Like LazyWrite? Create another book!</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Progress Indicators - Shown during loading */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40"
+          >
+            <motion.div 
+              className="bg-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <div className="flex space-x-1">
+                {[0, 1, 2, 3, 4].map(i => (
+                  <motion.div 
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-full ${i <= generationStep ? 'bg-indigo-500' : 'bg-gray-200'}`}
+                    animate={i === generationStep ? { scale: [1, 1.3, 1] } : {}}
+                    transition={{ duration: 0.6, repeat: i === generationStep ? Infinity : 0 }}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium text-gray-700">{loadingText}</span>
             </motion.div>
           </motion.div>
         )}

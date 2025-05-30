@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SparklesIcon, BookOpenIcon, ArrowPathIcon, StarIcon, LightBulbIcon, HeartIcon, AcademicCapIcon, CheckCircleIcon } from '@heroicons/react/24/solid'
+import { SparklesIcon, BookOpenIcon, ArrowPathIcon, StarIcon, LightBulbIcon, HeartIcon, AcademicCapIcon, CheckCircleIcon, PaperClipIcon } from '@heroicons/react/24/solid'
 import * as pdfjsLib from 'pdfjs-dist/build/pdf'
 import './App.css'
 
@@ -19,9 +19,9 @@ const SURPRISE_PROMPTS = [
 const AnimatedBackground = () => (
   <div className="fixed inset-0 -z-10">
     <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-blue-50 to-indigo-50" />
-    <div className="absolute top-0 left-0 w-1/4 h-1/4 bg-gradient-to-br from-rose-200/15 to-transparent rounded-full blur-3xl" />
-    <div className="absolute bottom-0 right-0 w-1/4 h-1/4 bg-gradient-to-br from-blue-200/15 to-transparent rounded-full blur-3xl" />
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 bg-gradient-to-br from-indigo-200/10 to-transparent rounded-full blur-3xl" />
+    <div className="absolute top-0 left-0 w-1/3 h-1/3 opacity-60 bg-gradient-to-br from-pink-200/20 via-purple-200/20 to-transparent rounded-full blur-3xl" />
+    <div className="absolute bottom-0 right-0 w-1/3 h-1/3 opacity-60 bg-gradient-to-br from-blue-200/20 via-indigo-200/20 to-transparent rounded-full blur-3xl" />
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2/3 h-2/3 opacity-30 bg-gradient-to-br from-indigo-200/10 via-purple-200/10 to-pink-200/10 rounded-full blur-3xl" />
   </div>
 )
 
@@ -57,6 +57,19 @@ const AdBanner = ({ className, size }) => (
   </div>
 )
 
+// Prompt option button component
+const PromptOptionButton = ({ icon: Icon, label }) => (
+  <motion.button
+    type="button"
+    className="flex items-center gap-1.5 px-4 py-2.5 bg-white/90 text-gray-700 text-xs font-medium rounded-full border border-gray-200 hover:bg-white"
+    whileHover={{ y: -2 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    <Icon className="w-3.5 h-3.5 text-gray-500" />
+    {label}
+  </motion.button>
+)
+
 export default function App() {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
@@ -65,6 +78,7 @@ export default function App() {
   const [showSuccessAd, setShowSuccessAd] = useState(false)
   const [generationStep, setGenerationStep] = useState(0)
   const [loadingText, setLoadingText] = useState('Starting book generation...')
+  const textareaRef = useRef(null)
 
   useEffect(() => {
     // Show entry ad after 3 seconds (for user engagement)
@@ -99,6 +113,14 @@ export default function App() {
       return () => clearInterval(interval);
     }
   }, [loading]);
+
+  // Auto resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [prompt]);
 
   const handleSurprise = () => {
     const idx = Math.floor(Math.random() * SURPRISE_PROMPTS.length)
@@ -184,7 +206,7 @@ export default function App() {
         <div className="flex-1 max-w-2xl mx-auto">
           {/* Logo and Title */}
           <motion.div 
-            className="text-center mb-6"
+            className="text-center mb-8"
             initial={{ y: 15, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.4 }}
@@ -205,79 +227,94 @@ export default function App() {
               <span className="gradient-text">LazyWrite</span>
             </h1>
             
-            <h2 className="text-lg font-bold text-gray-800 mb-1">
+            <h2 className="text-lg font-bold text-gray-800 mb-3">
               Create Professional Books with AI
             </h2>
             
-            <p className="text-xs text-gray-600 max-w-md mx-auto">
+            <p className="text-sm text-gray-600 max-w-md mx-auto mb-8">
               Transform your ideas into beautifully designed educational books in seconds—free, instant, and no sign-up required.
             </p>
-          </motion.div>
 
-          {/* Main Input Card */}
-          <motion.div 
-            className="card p-5 mb-6"
-            initial={{ y: 15, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  What would you like your book to be about?
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2.5 rounded-lg text-gray-800 placeholder-gray-400 text-sm"
-                    placeholder="A magical storybook about..."
+            {/* New Lovable-style Prompt Area */}
+            <motion.div 
+              className="relative max-w-2xl mx-auto mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-5 border border-gray-100">
+                  <textarea
+                    ref={textareaRef}
+                    className="w-full bg-transparent text-gray-800 placeholder-gray-400 text-lg resize-none overflow-hidden focus:outline-none min-h-[50px] mb-4"
+                    placeholder="Ask LazyWrite to create a book about..."
                     value={prompt}
                     onChange={e => setPrompt(e.target.value)}
                     disabled={loading}
+                    rows={1}
                   />
-                  <motion.button
-                    type="button"
-                    onClick={handleSurprise}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 transition-colors"
-                    disabled={loading}
-                  >
-                    <SparklesIcon className="w-3.5 h-3.5" />
-                  </motion.button>
+                  
+                  <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-indigo-500 transition-colors"
+                        onClick={handleSurprise}
+                        disabled={loading}
+                      >
+                        <SparklesIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="text-gray-400 hover:text-indigo-500 transition-colors"
+                        disabled={loading}
+                      >
+                        <PaperClipIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                    
+                    <motion.button
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-full text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-all"
+                      whileHover={{ scale: 1.02, boxShadow: "0 6px 12px -4px rgba(79, 70, 229, 0.3)" }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {loading ? (
+                        <>
+                          <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                          <span>{loadingText}</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookOpenIcon className="w-4 h-4" />
+                          Generate Book
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-              
-              <motion.button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm"
-                whileHover={{ scale: 1.01, boxShadow: "0 6px 12px -4px rgba(79, 70, 229, 0.25)" }}
-                whileTap={{ scale: 0.99 }}
-              >
-                {loading ? (
-                  <>
-                    <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
-                    <span className="ml-1.5 text-xs">{loadingText}</span>
-                  </>
-                ) : (
-                  <>
-                    <BookOpenIcon className="w-3.5 h-3.5" />
-                    Generate My Book
-                  </>
+                
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-xs font-medium p-3 bg-red-50 rounded-lg"
+                  >
+                    {error}
+                  </motion.div>
                 )}
-              </motion.button>
 
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-red-500 text-xs font-medium p-2 bg-red-50 rounded-lg"
-                >
-                  {error}
-                </motion.div>
-              )}
-            </form>
+                {/* Prompt Option Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <PromptOptionButton icon={BookOpenIcon} label="Children's Book" />
+                  <PromptOptionButton icon={AcademicCapIcon} label="Educational" />
+                  <PromptOptionButton icon={LightBulbIcon} label="Science" />
+                  <PromptOptionButton icon={HeartIcon} label="Fantasy" />
+                </div>
+              </form>
+            </motion.div>
+
           </motion.div>
 
           {/* Mid-page Ad */}

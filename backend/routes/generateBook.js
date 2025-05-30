@@ -4,6 +4,13 @@ const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 const router = express.Router();
 
+// Add GET route for clarity
+router.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'This endpoint only supports POST requests for AI book generation. Please use POST with a prompt.'
+  });
+});
+
 // Helper to call internal endpoints
 async function callInternal(endpoint, data) {
   return axios.post(`http://localhost:5000${endpoint}`, data, { timeout: 120000 });

@@ -10,6 +10,7 @@ app.use(cors({
   origin: [
     'https://lazywrite.vercel.app',      // Vercel frontend URL
     'https://lazywrite.netlify.app',     // Netlify frontend URL (if you use it)
+    'https://lazywriteai.netlify.app',   // Netlify custom domain (added for CORS)
     'http://localhost:5173'              // Local dev (Vite default)
   ],
   credentials: true
